@@ -1,0 +1,1 @@
+from .video_player.player import VideoPlayer
