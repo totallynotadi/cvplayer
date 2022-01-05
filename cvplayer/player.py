@@ -161,4 +161,13 @@ class VideoPlayer:
 
     def set_size(self):
         self.player.set_size()
+        
 
+if __name__ == '__main__':
+    lePlayer = VideoPlayer(r'C:\code_workspace\stream\StreamIt\test\nice_day.mp4', blocking=False, fullscreen=True)
+
+    print(lePlayer.get_metadata()['duration'])
+    while lePlayer.state != 'eof':
+        print(lePlayer.get_pts())
+        time.sleep(1)
+    print(f'eof found!')

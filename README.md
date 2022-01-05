@@ -18,8 +18,9 @@ Initializing a VideoPlayer instance will start playing the video according to th
 
 this class initiates playback and provide methods to control/access the state of the player.
 
-#### &emsp; parameters: _filename_: str
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&ensp;&nbsp;the filename of the media to be played
+#### parameters: 
+&emsp;&emsp;&emsp;_filename_: str \
+&emsp;&emsp;&emsp;&emsp;&ensp;&nbsp;the filename of the media to be played
 
 Here's and example to play a video 
 ```py 
