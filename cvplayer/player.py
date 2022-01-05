@@ -1,5 +1,6 @@
 import threading
 import time
+import math
 
 import cv2
 import numpy
@@ -7,21 +8,38 @@ from ffpyplayer.player import MediaPlayer
 from PIL import Image
 
 
+def _fix_metadata(metadata:dict):
+    return {'src_video_size': metadata['src_vid_size'], 
+            'title': metadata['title'][2 : -1], 
+            'duration': int(metadata['duration']),
+            'frame_rate': (lambda x: math.ceil(x[0] / (x[1] + 1)))(metadata['frame_rate']),
+            'src_pix_fmt': str(metadata['src_pix_fmt'])[2 : -1],
+            'aspect_ratio': metadata['aspect_ratio']}
+
 class VideoPlayer:
-    def __init__(self, term, paused=False, fullscreen=False, key_controls=True, skip_interval=5):
+    def __init__(self, filename, paused=False, fullscreen=False, key_controls=True, skip_interval=5, blocking=False):
         opts = {'sync': 'audio', 'autoexit': True, 'paused': paused}
-        self.player = MediaPlayer(term, ff_opts=opts)
+        self.player = MediaPlayer(filename, ff_opts=opts)
         time.sleep(1)
         self.pause = self.player.get_pause()
         self.fullscreen = fullscreen
         self.skip_interval = skip_interval
         self.key_controls = key_controls
+        self.state = None
         self.frame = None
-        handler_thread = threading.Thread(target=self.player_handler, args=())
-        handler_thread.start()
+        try:
+            handler_thread = threading.Thread(target=self.player_handler, args=(filename, ), daemon=True)
+            if blocking:
+                handler_thread.run()
+            else:
+                handler_thread.start()
+        except Exception:
+            print('cvplayer::error: unable to initialize player')
 
-    def player_handler(self):
+    def player_handler(self, filename):
+        opts = {'sync': 'audio', 'autoexit': True, 'paused': True}
         if self.pause:
+            self.state = 'paused'
             cv2.imshow('video', numpy.zeros((512, 512, 3), dtype = "uint8"))
             pressed_key = cv2.waitKey(0) & 0xFF
             if pressed_key != 255:  print(pressed_key)
@@ -34,7 +52,9 @@ class VideoPlayer:
             if val != 'eof':
                 if int(self.player.get_pts()) == int(self.player.get_metadata()['duration']):
                     time.sleep(val)
+                    self.state = 'eof'
                     self.player.close_player()
+                    self.player = MediaPlayer(filename, ff_opts=opts)
                     break
                 if isinstance(val, str):
                     waitkey = 32
@@ -43,30 +63,36 @@ class VideoPlayer:
                 else:
                     waitkey = int(val * 100)
                 pressed_key = cv2.waitKey(waitkey) & 0xFF
-                if self.key_controls:
-                    if pressed_key != 255:
-                        if pressed_key == ord('q') or pressed_key == 81 or pressed_key == 27:
-                            break
-                        elif pressed_key == ord(' ') or pressed_key == ord('k') or pressed_key == ord('K'):
-                            self.pause = not self.pause
-                            self.player.toggle_pause()
-                        elif pressed_key == ord('r') or pressed_key == ord('R'):
-                            self.player.seek(0, relative=False)
-                            self.player.get_frame()
-                        elif pressed_key == ord('l') or pressed_key == ord('L'):
-                            self.player.seek(self.skip_interval, relative=True, accurate=False)
-                            self.player.get_frame()
-                        elif pressed_key == ord('j') or pressed_key == ord('J'):
-                            self.player.seek(-self.skip_interval, relative=True, accurate=False)
-                            self.player.get_frame()
-                        elif pressed_key == ord('f') or pressed_key == ord('F'):
-                            self.fullscreen = not self.fullscreen
-                        elif pressed_key == ord('i') or pressed_key == ord('I'):
-                            self.player.set_volume(self.player.get_volume() + 0.1)
-                        elif pressed_key == ord('o') or pressed_key == ord('O'):
-                            self.player.set_volume(self.player.get_volume() - 0.1)
+                if self.key_controls and pressed_key != 255:
+                    if pressed_key == ord('q') or pressed_key == 81 or pressed_key == 27:
+                        self.player.close_player()
+                        self.state = 'eof'
+                        break
+                    elif pressed_key == ord(' ') or pressed_key == ord('k') or pressed_key == ord('K'):
+                        self.pause = not self.pause
+                        self.player.toggle_pause()
+                        if self.player.get_pause():
+                            self.state = 'paused'
+                        else:
+                            self.state = 'playing'
+                    elif pressed_key == ord('r') or pressed_key == ord('R'):
+                        self.player.seek(0, relative=False)
+                        self.player.get_frame()
+                    elif pressed_key == ord('l') or pressed_key == ord('L'):
+                        self.player.seek(self.skip_interval, relative=True, accurate=False)
+                        self.player.get_frame()
+                    elif pressed_key == ord('j') or pressed_key == ord('J'):
+                        self.player.seek(-self.skip_interval, relative=True, accurate=False)
+                        self.player.get_frame()
+                    elif pressed_key == ord('f') or pressed_key == ord('F'):
+                        self.fullscreen = not self.fullscreen
+                    elif pressed_key == ord('i') or pressed_key == ord('I'):
+                        self.player.set_volume(self.player.get_volume() + 0.1)
+                    elif pressed_key == ord('o') or pressed_key == ord('O'):
+                        self.player.set_volume(self.player.get_volume() - 0.1)
 
                 if not self.pause:
+                    self.state = 'playing'
                     if frame is not None:
                         image, pts = frame
                         self.frame = image
@@ -104,25 +130,28 @@ class VideoPlayer:
         self.fullscreen = set_to
 
     def toggle_pause(self):
-        self.pause = not self.pause   
+        self.pause = not self.pause
 
     def get_pause(self):
         return self.player.get_pause()
 
     def set_pause(self, set_to):
         self.player.set_pause(set_to)
-
-    def get_pts(self):
-        return self.player.get_pts()
-
-    def get_metadata(self):
-        return self.player.get_metadata()
+    
+    def seek(self, pts, relative=False, accurate=False):
+        self.player.seek(pts, relative=relative, accurate=accurate)
 
     def get_volume(self):
         return self.player.get_volume()
 
     def set_volume(self, volume):
         self.player.set_volume(volume)
+
+    def get_pts(self):
+        return int(self.player.get_pts())
+
+    def get_metadata(self):
+        return _fix_metadata(self.player.get_metadata())
 
     def get_frame(self):
         return self.frame
@@ -133,6 +162,3 @@ class VideoPlayer:
     def set_size(self):
         self.player.set_size()
 
-
-if __name__ == '__main__':
-    lePlayer = VideoPlayer(r'C:\code_workspace\stream\StreamIt\test\EP1.mkv', paused=False, fullscreen=False)
