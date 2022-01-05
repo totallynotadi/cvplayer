@@ -8,7 +8,7 @@ setup(
     author = 'addyett',
     author_email = 'g.aditya2048@gmail.com',
     url = 'https://github.com/addyett/video-player',
-    download_url = 'https://github.com/user/reponame/archive/v_01.tar.gz',
+    download_url = 'https://github.com/addyett/video-player/archive/refs/tags/v1.0.0.tar.gz',
     keywords = ['OpenCV', 'ffpyplayer', 'media-player', 'video'],
     install_requires=[
             'opencv-python',
