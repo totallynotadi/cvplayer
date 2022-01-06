@@ -1,26 +1,27 @@
-# Video Player
-
-cvplayer is a minimal wrapper around the ffpyplayer.MediaPlayer class for playing videos through 
-* interactive (direct access to the player through keymaps) or 
-* scripts (getting a VideoPlayer instance and doing whatever the user wants to)
-
-audio playback and supplying frames is handles by ffpyplayer and OpenCV is used to display the frames
-
-this makes it useful for simple interactable video playback as well for integrating video playback in programs
-
-## Scripted access
+# cvplayer
 ---
 
-cvplayer provides the VideoPlayer class which is the main wrapper around the ffpyplayer. \
-Initializing a VideoPlayer instance will start playing the video according to the options specified while initializing. The Playback can be controlled from within the script as well as using keymaps.
+cvplayer is a simple wrapper around the ffpyplayer's MediaPlayer class to acheive easy video playback while still having all of the functionality provided by ffpyplayer
 
-### the VideoPlayer class
+### Installation
+```
+pip install cvplayer
+```
 
-this class initiates playback and provide methods to control/access the state of the player.
+there are two ways to use cvplayer, either through
+* starting interactive (direct) playback of a video from the command-line: \
+```python -m cvplayer filaname``` \
+simply starts the video in a different window where it's playback can be controlledby using keymaps \
+the default keymaps for controlling the video playback are -
 
-#### parameters: 
-&emsp;&emsp;&emsp;_filename_: str \
-&emsp;&emsp;&emsp;&emsp;&ensp;&nbsp;the filename of the media to be played
+* scripts (getting a VideoPlayer instance and doing whatever you want to)
+
+## scripted access
+---
+cvplayer provides the VideoPlayer class which is the main wrapper around ffpyplayer's MediaPlayer. \
+Initializing a VideoPlayer instance will start playing the video according to the options specified. The Playback can be controlled from within the script as well as using keymaps.
+
+the VideoPlayer class initiates playback and provide methods to control/access the state of the player.
 
 Here's and example to play a video 
 ```py 
@@ -28,9 +29,9 @@ from cvplayer import VideoPlayer
 
 player = VideoPlayer(filename)
 
-duration = int(player.get_metadata()['duration'])
 while player.state != 'eof':
     print(player.get_pts())
     time.sleep(1)
 ```
+
 
