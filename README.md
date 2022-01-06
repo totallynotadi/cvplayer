@@ -1,5 +1,4 @@
 # cvplayer
----
 
 cvplayer is a simple wrapper around the ffpyplayer's MediaPlayer class to acheive easy video playback while still having all of the functionality provided by ffpyplayer
 
