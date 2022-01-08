@@ -50,5 +50,5 @@ with tqdm.tqdm(range(player.get_metadata()['duration']), unit='s', bar_format=ba
             bar.update(pts_diff)
             bar.refresh()
             continue
-        bar.update(1)
+        bar.update(1)x
     bar.update(1)

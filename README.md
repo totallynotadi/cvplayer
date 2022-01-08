@@ -1,5 +1,6 @@
 # cvplayer
 ---
+easily play videos in python using ffpyplayer and OpenCV
 
 cvplayer is a simple wrapper around the ffpyplayer's MediaPlayer class to acheive easy video playback while still having all of the functionality provided by ffpyplayer
 
@@ -34,4 +35,10 @@ while player.state != 'eof':
     time.sleep(1)
 ```
 
-
+parameters for a VideoPlayer instance:
+| parameter | type |Description |
+|-----------|------|------------|
+| filename | str | the filename of the media.|
+| paused | bool | if True, the player will be in a paused state after creation, otherwise it will immediately start playing. Defaults to False
+| fullscreen | bool | if True, the video playback will be in fullscreen mode immediately after it's creation |
+| key_controls | bool
