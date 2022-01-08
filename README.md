@@ -1,6 +1,6 @@
 # cvplayer
 
-cvplayer is a simple wrapper around the ffpyplayer's MediaPlayer class to acheive easy video playback while still having all of the functionality provided by ffpyplayer
+cvplayer is a video player written in python that provides easy video playback using ffpyplayer and OpenCV 
 
 ### Installation
 ```
@@ -34,9 +34,17 @@ while player.state != 'eof':
 ```
 
 parameters for a VideoPlayer instance:
-| parameter | type |Description |
-|-----------|------|------------|
-| filename | str | the filename of the media.|
-| paused | bool | if True, the player will be in a paused state after creation, otherwise it will immediately start playing. Defaults to False
-| fullscreen | bool | if True, the video playback will be in fullscreen mode immediately after it's creation |
-| key_controls | bool
+
+| parameter    | type  |Description                                                                                                                   |
+|--------------|-------|------------------------------------------------------------------------------------------------------------------------------|
+| filename     | str   | The filename of the media                                                                                                    |
+| paused       | bool  | If True, the player will be in a paused state after creation, otherwise it will immediately start playing. Defaults to False |
+| fullscreen   | bool  | If True, the video playback will be in fullscreen mode immediately after it's creation. Defaults to True                     |
+| key_controls | bool  | If True, the video playback can be controlled using specified keymaps. Defaults to True                                      | 
+| skip_interval| int   | Specify the numebr of seconds to move ahead or beind when navigating the video using the keymaps                             |
+| volume       | float | The default volume. A value between 0.0 - 1.0. Defaults to 1.0                                                               |
+| mute         | bool  | If True, the player will be muted by default after creation. Defaults to False                                               |
+| t            | int   | Play only ```t``` seconds of the audio/video. Defaults to the full audio/video. Defaults to the full audio/video             |
+| ss           | int   | Seek to pos ```ss``` into the file when starting. Defaults to the beginning of the file                                      |
+| blocking     | bool  | If True, the playback will block the current thread (the one it's being run from) until the playback ends. Defaults to False |
+| playback     | bool  | If False, only the player will be initialized and no video/audio will be played, only audio can be played by unmuting the player. Useful for just reading the frames form a video to display them using something else|
