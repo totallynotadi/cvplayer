@@ -1,6 +1,5 @@
 import math
 import os
-import sys
 import threading
 import time
 
@@ -11,8 +10,8 @@ from PIL import Image
 
 
 def _fix_metadata(metadata:dict):
-    return {'src_video_size': metadata['src_vid_size'], 
-            'title': metadata['title'][2 : -1], 
+    return {'src_video_size': metadata['src_vid_size'],
+            'title': metadata['title'][2 : -1],
             'duration': int(metadata['duration']),
             'frame_rate': (lambda x: math.ceil(x[0] / (x[1] + 1)))(metadata['frame_rate']),
             'src_pix_fmt': str(metadata['src_pix_fmt'])[2 : -1],
@@ -35,7 +34,7 @@ class InitializationError(Exception):
 
     def __str__(self) -> str:
         return self.message
-    
+
 class FileNotFound(InitializationError):
     def __init__(self, filename) -> None:
         self.filename = filename
@@ -54,17 +53,17 @@ class VideoPlayer:
                  skip_interval=5,
                  volume = 1.0,
                  mute = False,
-                 t = 1e5,
+                 t = 1e7,
                  ss = 0,
                  blocking=False,
                  playback=True):
         if not os.path.exists(filename):
             raise FileNotFound(filename)
         volume = 0.0 if not playback or mute else volume
-        opts = {'sync': 'audio', 'autoexit': True, 'paused': paused, 'volume': volume, 't': t+1, 'ss': ss}
+        opts = {'sync': 'audio', 'paused': paused, 'volume': volume, 't': t+1, 'ss': ss}
         self.player = MediaPlayer(filename, ff_opts=opts)
         time.sleep(1)
-        self.volume = self.set_volume(volume)
+        self.volume = self.get_volume()
         if mute:
             self.set_mute(True)
         self.filename = filename
@@ -85,7 +84,7 @@ class VideoPlayer:
             else:
                 handler_thread.start()
         except Exception as error:
-            raise InitializationError(error)
+            raise error from InitializationError(error=error)
 
     def _player_handler(self):
         if self.pause and self.playback:
@@ -95,14 +94,20 @@ class VideoPlayer:
             self.player.toggle_pause()
 
         while True:
-            if not self.playback:   continue
+            if not self.playback:
+                time.sleep(1)
+                continue
             cv2.namedWindow('video', cv2.WINDOW_KEEPRATIO)
             frame, val = self.player.get_frame()
-            # if int(self.player.get_pts()) >= self.t:
-                # print(f":: {self.player.get_pts()}")
-            if int(self.player.get_pts()) >= int(self.player.get_metadata()['duration']) or self.player.get_pts() >= self.t:
-                time.sleep(val)
+            # print(val)
+            # if int(self.player.get_pts()) >= self.player.get_metadata()['duration']-1:
+            #     print(f"::pts: {self.player.get_pts()}")
+            #     print(f"::duration: {self.player.get_metadata()['duration']}")
+            # if self.player.get_pts() >= self.player.get_metadata()['duration'] + val or self.player.get_pts() >= self.t:
+            if val == 'eof':
+                self.player.toggle_pause()
                 self.player.close_player()
+                time.sleep(2)
                 self.state = 'eof'
                 break
             if isinstance(val, str) or val == 0.0:
@@ -199,7 +204,7 @@ class VideoPlayer:
 
     def set_pause(self, pause: bool):
         self.player.set_pause(pause)
-    
+
     def seek(self, pts, relative=False, accurate=False):
         self.player.seek(pts, relative=relative, accurate=accurate)
 
@@ -223,7 +228,7 @@ class VideoPlayer:
         return self.frame
 
     def get_size(self):
-        return self.frame.get_size()
+        return self.frame[0].get_size()
 
     def set_size(self):
         self.player.set_size()
@@ -238,10 +243,10 @@ class VideoPlayer:
         else:
             # raise
             pass
-    
+
     def get_mute(self):
         return self.player.get_mute()
-    
+
     def set_mute(self, mute: bool):
         self.player.set_mute(mute)
         if mute is True:

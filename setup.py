@@ -7,7 +7,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name="cvplayer",
-    version="1.1.0",
+    version="1.2.0",
     description="a simple video player based on ffpyplayer and OpenCV",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -21,6 +21,13 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Operating System :: MacOS",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows :: Windows 10",
+        "Operating System :: POSIX :: Linux",
+        "Topic :: Multimedia :: Sound/Audio",
+        "Topic :: Multimedia :: Sound/Audio :: Players",
+        "Topic :: Multimedia :: Sound/Audio :: Players :: MP3"
     ],
     packages=["cvplayer"],
     include_package_data=True,
